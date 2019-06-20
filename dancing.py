@@ -2,6 +2,8 @@
 import os
 import sys
 import getopt
+from datetime import datetime
+from random import randint
 
 from git import Repo
 
@@ -10,7 +12,9 @@ class Dancing():
     branch_name = 'dancing_master'
     file_name = '.dancing.log'
 
-    def __init__(self, repo, mode):
+    modes = ['random']
+
+    def __init__(self, repo):
         self.repo = Repo.init(repo)
         os.chdir(repo)
         with open(self.file_name, 'a+') as f:
@@ -21,20 +25,34 @@ class Dancing():
             branch = self.repo.create_head(self.branch_name)    # 创建一个名为dancing_master的分支
             branch.checkout()
 
-        self.mode = mode
+    def run(self, mode, **kargs):
+        if mode not in self.modes:
+            raise ValueError
 
-    def run(self):
-        pass
+        if mode == 'random':
+            print(kargs)
+            
+            year = kargs.get('year')
+            dt_end = datetime.now() if year is None else datetime(int(year), 12, 31)
+            week_day = dt_end.weekday()
+            lask_week_days = 0 if week_day == 6 else week_day + 1
+            dt_start = datetime.fromtimestamp(dt_end.timestamp() - (52 * 7 + lask_week_days) * 3600 * 24)
+            print(dt_end, dt_start)
+            days = dt_end - dt_start
+            print(days)
         
 
 if __name__ == "__main__":
-    opts, args = getopt.getopt(sys.argv[1:], "r:m:", ["repo=", "mode="])
+    opts, args = getopt.getopt(sys.argv[1:], "r:m:y", ["repo=", "mode=", "year="])
     repo, mode = "./example-repo", "random"
+    params = {}
     for key, val in opts:
         if key in ("-r", "--repo"):
             repo = val
         elif key in ("-m", "--mode"):
             mode = val
-    dancing = Dancing(repo, mode)
-    dancing.run()
+        elif key in ("-y", "--year"):
+            params['year'] = val
+    dancing = Dancing(repo)
+    dancing.run(mode, **params)
             
