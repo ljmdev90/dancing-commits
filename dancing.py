@@ -30,16 +30,42 @@ class Dancing():
             raise ValueError
 
         if mode == 'random':
-            print(kargs)
-            
             year = kargs.get('year')
             dt_end = datetime.now() if year is None else datetime(int(year), 12, 31)
             week_day = dt_end.weekday()
             lask_week_days = 0 if week_day == 6 else week_day + 1
             dt_start = datetime.fromtimestamp(dt_end.timestamp() - (52 * 7 + lask_week_days) * 3600 * 24)
-            print(dt_end, dt_start)
             days = dt_end - dt_start
-            print(days)
+            date_iter = (datetime.fromtimestamp(dt_start.timestamp() + d * 24 * 3600).date() for d in range(days.days))
+            week_map = [[] for _ in range(7)]
+            
+            with open(self.file_name, 'a+') as f:
+                for i, d in enumerate(date_iter):
+                    cnt = 0 
+                    commit_datetimes = sorted(
+                        [datetime(d.year, d.month, d.day, randint(0, 23), randint(0, 59), randint(0, 59)) for _ in range(5)],
+                        reverse=True
+                    )
+                    if randint(0,3) == 0:
+                        for n in range(randint(0, 5)):
+                            msg = '第' + str(n+1) + '次提交\n'
+                            commit_datetime = commit_datetimes.pop()
+                            f.write(str(commit_datetime.date()) + ' ' + msg)
+                            f.read()
+                            cnt += 1
+                            self.repo.git.add(self.file_name)   # 这里用self.repo.index报错，不知为何
+                            self.repo.git.commit(message=msg, date=commit_datetime)
+                    week_map[i % 7].append(cnt)
+                self.preview(week_map)
+            
+    def preview(self, week_map):
+        for line in week_map:
+            for c in line:
+                if c > 0:
+                    print('██', end=' ')
+                else:
+                    print('░░', end=' ')
+            print()
         
 
 if __name__ == "__main__":
