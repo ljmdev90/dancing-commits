@@ -39,6 +39,11 @@ class Dancing():
             date_iter = (datetime.fromtimestamp(dt_start.timestamp() + d * 24 * 3600).date() for d in range(days.days))
             week_map = [[] for _ in range(7)]
             
+            commit_dates = {}  # 原来的提交记录
+            for commit in self.repo.iter_commits():
+                k = str(commit.committed_datetime.date())
+                commit_dates.setdefault(k, 1)
+                commit_dates[k] += 1
             with open(self.file_name, 'a+') as f:
                 for i, d in enumerate(date_iter):
                     cnt = 0 
@@ -46,15 +51,18 @@ class Dancing():
                         [datetime(d.year, d.month, d.day, randint(0, 23), randint(0, 59), randint(0, 59)) for _ in range(5)],
                         reverse=True
                     )
-                    if randint(0,3) == 0:
+                    if str(d) in commit_dates:
+                        cnt += commit_dates[str(d)]
+                    elif randint(0,3) == 0:
                         for n in range(randint(0, 5)):
                             msg = '第' + str(n+1) + '次提交\n'
                             commit_datetime = commit_datetimes.pop()
                             f.write(str(commit_datetime.date()) + ' ' + msg)
                             f.read()
                             cnt += 1
-                            self.repo.git.add(self.file_name)   # 这里用self.repo.index报错，不知为何
-                            self.repo.git.commit(message=msg, date=commit_datetime)
+                            self.repo.index.add([self.file_name])
+                            commit_datetime = str(int(float(commit_datetime.timestamp()))) + ' +0800'
+                            self.repo.index.commit(message=msg, author_date=commit_datetime, commit_date=commit_datetime)
                     week_map[i % 7].append(cnt)
                 self.preview(week_map)
             
