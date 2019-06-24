@@ -6,13 +6,14 @@ from datetime import datetime
 from random import randint
 
 from git import Repo
+from PIL import Image, ImageDraw, ImageFont
 
 class Dancing():
     
     branch_name = 'dancing_master'
     file_name = '.dancing.log'
 
-    modes = ['random']
+    modes = ['random', 'text']
 
     def __init__(self, repo):
         self.repo = Repo.init(repo)
@@ -29,6 +30,7 @@ class Dancing():
         if mode not in self.modes:
             raise ValueError
 
+        week_map = [[] for _ in range(7)]
         if mode == 'random':
             year = kargs.get('year')
             dt_end = datetime.now() if year is None else datetime(int(year), 12, 31)
@@ -37,7 +39,6 @@ class Dancing():
             dt_start = datetime.fromtimestamp(dt_end.timestamp() - (52 * 7 + lask_week_days) * 3600 * 24)
             days = dt_end - dt_start
             date_iter = (datetime.fromtimestamp(dt_start.timestamp() + d * 24 * 3600).date() for d in range(days.days))
-            week_map = [[] for _ in range(7)]
             
             commit_dates = {}  # 原来的提交记录
             for commit in self.repo.iter_commits():
@@ -65,7 +66,41 @@ class Dancing():
                             self.repo.index.commit(message=msg, author_date=commit_datetime, commit_date=commit_datetime)
                     week_map[i % 7].append(cnt)
                 self.preview(week_map)
-            
+
+        elif mode == 'text':
+            text = kargs.get('text')
+            font = kargs.get('font')
+
+            im_width, im_height = 53, 7
+            im = Image.new('L', (im_width, im_height), 'white')
+            if font is not None:
+                font = ImageFont.truetype(font=font, size=8)
+
+            draw = ImageDraw.Draw(im)
+            width, height = draw.textsize(text, font=font)
+            x, y = 0, (im_height - height) / 2
+            if width < im_width:
+                x = int((im_width - width) / 2)
+            draw.text((x, y), text, font=font)
+            px = im.load()
+            px_index = [(j, i) for i in range(7) for j in range(53)]
+            for i in px_index:
+                x = int(px[i])
+                cnt = 0
+                if x <= 50:
+                    cnt = 4
+                elif 50 < x <= 100:
+                    cnt = 3
+                elif 100 < x <= 150:
+                    cnt = 2
+                elif 150 < x <= 200:
+                    cnt = 1
+                else:
+                    cnt = 0
+                week_map[i[1] % 7].append(cnt)
+            self.preview(week_map)
+            # im.resize((530, 70)).show()
+
     def preview(self, week_map):
         for line in week_map:
             for c in line:
@@ -77,7 +112,7 @@ class Dancing():
         
 
 if __name__ == "__main__":
-    opts, args = getopt.getopt(sys.argv[1:], "r:m:y", ["repo=", "mode=", "year="])
+    opts, args = getopt.getopt(sys.argv[1:], "r:m:y:t:f", ["repo=", "mode=", "year=", "text=", "font="])
     repo, mode = "./example-repo", "random"
     params = {}
     for key, val in opts:
@@ -87,6 +122,10 @@ if __name__ == "__main__":
             mode = val
         elif key in ("-y", "--year"):
             params['year'] = val
+        elif key in ("-t", "--text"):
+            params['text'] = val
+        elif key in ("-f", "--font"):
+            params['font'] = val
     dancing = Dancing(repo)
     dancing.run(mode, **params)
             

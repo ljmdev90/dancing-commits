@@ -7,6 +7,7 @@ verify_ssl = true
 
 [packages]
 gitpython = "*"
+pillow = "*"
 
 [requires]
 python_version = "3.7"
