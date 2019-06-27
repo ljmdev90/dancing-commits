@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 class Dancing():
     
-    branch_name = 'dancing_master'
+    # branch_name = 'master'
     file_name = '.dancing.log'
 
     modes = ['random', 'text']
@@ -20,14 +20,14 @@ class Dancing():
         self.repo = Repo.init(repo)
         os.chdir(repo)
         self.is_empty_repo = False
-        with open(self.file_name, 'a+') as f:
-            if len(self.repo.heads) == 0:   # 如果是空仓库, 则进行一次提交，因为不提交的话不能创建新的分支
-                self.repo.index.add(items=[self.file_name])
-                self.repo.index.commit('first commit')
-                self.is_empty_repo = True
+        # with open(self.file_name, 'a+') as f:
+        #     if len(self.repo.heads) == 0:   # 如果是空仓库, 则进行一次提交，因为不提交的话不能创建新的分支
+        #         self.repo.index.add(items=[self.file_name])
+        #         self.repo.index.commit('first commit')
+        #         self.is_empty_repo = True
             
-            branch = self.repo.create_head(self.branch_name)    # 创建一个名为dancing_master的分支
-            branch.checkout()
+        #     branch = self.repo.create_head(self.branch_name)    # 创建一个名为dancing_master的分支
+        #     branch.checkout()
 
     def run(self, mode, **kargs):
         if mode not in self.modes:
@@ -44,10 +44,13 @@ class Dancing():
         week_map = [[] for _ in range(7)]
 
         commit_dates = {}  # 原来的提交记录
-        for commit in self.repo.iter_commits():
-            k = str(commit.committed_datetime.date())
-            commit_dates.setdefault(k, 1)
-            commit_dates[k] += 1
+        try:
+            for commit in self.repo.iter_commits():
+                k = str(commit.committed_datetime.date())
+                commit_dates.setdefault(k, 1)
+                commit_dates[k] += 1
+        except Exception as identifier:
+            pass
         if mode == 'random':
             with open(self.file_name, 'a+') as f:
                 for i, d in enumerate(date_iter):
