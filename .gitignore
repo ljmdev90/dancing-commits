@@ -1,2 +1,3 @@
 example-repo
 .vscode/settings.json
+dancing/__pycache__/*

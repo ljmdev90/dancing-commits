@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+import sys
+import getopt
+from dancing import dancing
+
+opts, args = getopt.getopt(sys.argv[1:], "r:m:y:t:f", ["repo=", "mode=", "year=", "text=", "font="])
+repo, mode = "./example-repo", "random"
+params = {}
+for key, val in opts:
+    if key in ("-r", "--repo"):
+        repo = val
+    elif key in ("-m", "--mode"):
+        mode = val
+    elif key in ("-y", "--year"):
+        params['year'] = val
+    elif key in ("-t", "--text"):
+        params['text'] = val
+    elif key in ("-f", "--font"):
+        params['font'] = val
+dancing = dancing.Dancing(repo)
+dancing.run(mode, **params)
