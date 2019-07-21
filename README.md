@@ -12,9 +12,9 @@ dancing --repo ./example-repo
 
 ### 生成文字样式的提交记录
 ```Bash
-dancing --repo ./example-repo --mode=text --text='abcdefg'
+dancing --repo ./example-repo --mode=text --text='abcdefg' --year=2017
 ```
-
+![image](https://i.loli.net/2019/07/21/5d33d302a6a8091745.png)
 
 ## 参数说明
 ```Bash
